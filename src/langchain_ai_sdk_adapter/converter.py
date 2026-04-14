@@ -35,29 +35,26 @@ def _chunk_to_content_text(chunk: AIMessageChunk) -> str:
 async def to_ui_message_stream(
     chunks,
 ) -> AsyncGenerator[str, None]:
-    """Convert LangChain AIMessageChunk stream to AI SDK SSE format.
+    """Convert LangChain AIMessageChunk stream to AI SDK 5.0 SSE format.
 
-    Args:
-        chunks: An async iterable of AIMessageChunk objects (from
-            model.stream() or graph.astream_events() with on_chat_model_stream events).
+    Yields SSE lines in AI SDK 5.0 protocol:
+    - data: {"type":"start","messageId":"msg_<uuid>"}
+    - data: {"type":"text-start","id":"text_<uuid>"}
+    - data: {"type":"text-delta","id":"text_<uuid>","delta":"..."}  (per chunk)
+    - data: {"type":"text-end","id":"text_<uuid>"}
+    - data: {"type":"finish","finishReason":"stop","usage":{"inputTokens":0,"outputTokens":0}}
 
-    Yields:
-        SSE-formatted strings in AI SDK useChat format:
-        - data: {"type":"text","text":"..."}\n\n
-        - data: [DONE]\n\n
-
-    Example:
-        ```python
-        from langchain_anthropic import ChatAnthropic
-        from langchain_ai_sdk_adapter import to_ui_message_stream
-
-        model = ChatAnthropic(model="claude-3-5-sonnet")
-        stream = await model.astream([HumanMessage(content="Hi")])
-
-        async for line in to_ui_message_stream(stream):
-            print(line, end="")
-        ```
+    No [DONE] sentinel — stream terminates after finish.
+    Compatible with Vercel AI SDK 5.0 useChat hook.
     """
+    import uuid
+
+    message_id = f"msg_{uuid.uuid4().hex[:30]}"
+    text_id = f"text_{uuid.uuid4().hex[:30]}"
+
+    yield f"data: {json.dumps({'type': 'start', 'messageId': message_id})}\n\n"
+    yield f"data: {json.dumps({'type': 'text-start', 'id': text_id})}\n\n"
+
     async for chunk in chunks:
         if not isinstance(chunk, AIMessageChunk):
             continue
@@ -66,13 +63,11 @@ async def to_ui_message_stream(
         if not text:
             continue
 
-        data = {
-            "type": "text",
-            "text": text,
-        }
-        yield f"data: {json.dumps(data)}\n\n"
+        yield f"data: {json.dumps({'type': 'text-delta', 'id': text_id, 'delta': text})}\n\n"
 
-    yield "data: [DONE]\n\n"
+    yield f"data: {json.dumps({'type': 'text-end', 'id': text_id})}\n\n"
+    finish_data = {'type': 'finish', 'finishReason': 'stop', 'usage': {'inputTokens': 0, 'outputTokens': 0}}
+    yield f"data: {json.dumps(finish_data)}\n\n"
 
 
 def create_ui_message_stream_response(stream) -> "StreamingResponse":
