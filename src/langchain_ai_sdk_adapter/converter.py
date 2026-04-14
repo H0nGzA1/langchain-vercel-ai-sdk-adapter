@@ -1,17 +1,11 @@
 """Convert LangChain streams to AI SDK SSE format."""
 import json
-import uuid
 from typing import AsyncGenerator, TYPE_CHECKING
 
 from langchain_core.messages import AIMessageChunk
 
 if TYPE_CHECKING:
     from starlette.responses import StreamingResponse
-
-
-def _generate_message_id() -> str:
-    """Generate a unique message ID matching AI SDK format."""
-    return f"msg_{uuid.uuid4().hex[:24]}"
 
 
 def _chunk_to_content_text(chunk: AIMessageChunk) -> str:
@@ -49,7 +43,7 @@ async def to_ui_message_stream(
 
     Yields:
         SSE-formatted strings in AI SDK useChat format:
-        - data: {"id":"msg_xxx","role":"assistant","content":"..."}\n\n
+        - data: {"type":"text","text":"..."}\n\n
         - data: [DONE]\n\n
 
     Example:
@@ -64,9 +58,6 @@ async def to_ui_message_stream(
             print(line, end="")
         ```
     """
-    msg_id = _generate_message_id()
-    role = "assistant"
-
     async for chunk in chunks:
         if not isinstance(chunk, AIMessageChunk):
             continue
@@ -76,9 +67,8 @@ async def to_ui_message_stream(
             continue
 
         data = {
-            "id": msg_id,
-            "role": role,
-            "content": text,
+            "type": "text",
+            "text": text,
         }
         yield f"data: {json.dumps(data)}\n\n"
 
@@ -113,5 +103,6 @@ def create_ui_message_stream_response(stream) -> "StreamingResponse":
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
+            "x-vercel-ai-ui-message-stream": "v1",
         }
     )

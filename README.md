@@ -62,8 +62,8 @@ async def chat(request: Request):
 The adapter produces SSE in AI SDK `useChat` format:
 
 ```
-data: {"id":"msg_abc123","role":"assistant","content":"Hello"}\n\n
-data: {"id":"msg_abc123","role":"assistant","content":" world"}\n\n
+data: {"type":"text","text":"Hello"}\n\n
+data: {"type":"text","text":" world"}\n\n
 ...
 data: [DONE]\n\n
 ```
