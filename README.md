@@ -57,16 +57,20 @@ async def chat(request: Request):
     return create_ui_message_stream_response(to_ui_message_stream(stream))
 ```
 
-## SSE Format
+## SSE Format (AI SDK 5.0)
 
-The adapter produces SSE in AI SDK `useChat` format:
+The adapter outputs SSE in AI SDK 5.0 protocol format, compatible with `useChat`:
 
 ```
-data: {"type":"text","text":"Hello"}\n\n
-data: {"type":"text","text":" world"}\n\n
-...
-data: [DONE]\n\n
+data: {"type":"start","messageId":"msg_<uuid>"}
+data: {"type":"text-start","id":"text_<uuid>"}
+data: {"type":"text-delta","id":"text_<uuid>","delta":"Hello"}
+data: {"type":"text-delta","id":"text_<uuid>","delta":" world"}
+data: {"type":"text-end","id":"text_<uuid>"}
+data: {"type":"finish","finishReason":"stop","usage":{"inputTokens":0,"outputTokens":0}}
 ```
+
+Compatible with Vercel AI SDK 5.0 `useChat` hook.
 
 ## License
 
