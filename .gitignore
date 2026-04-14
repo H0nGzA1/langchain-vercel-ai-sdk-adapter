@@ -25,3 +25,6 @@ htmlcov/
 
 # mypy
 .mypy_cache/
+
+# Docs (keep locally, don't track)
+docs/superpowers/
