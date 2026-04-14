@@ -1,6 +1,6 @@
 [project]
 name = "langchain-vercel-ai-sdk-adapter"
-version = "0.1.1"
+version = "0.2.0"
 description = "Adapter to integrate LangChain with Vercel AI SDK SSE streaming"
 readme = "README.md"
 license = { text = "MIT" }
