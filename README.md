@@ -11,13 +11,13 @@ Adapter to integrate Python LangChain backends with Vercel AI SDK frontend clien
 ## Installation
 
 ```bash
-pip install langchain-ai-sdk-adapter
+pip install langchain-vercel-ai-sdk-adapter
 ```
 
 With FastAPI support:
 
 ```bash
-pip install langchain-ai-sdk-adapter[fastapi]
+pip install langchain-vercel-ai-sdk-adapter[fastapi]
 ```
 
 ## Usage
