@@ -4,7 +4,7 @@ from typing import Any
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 
-def to_base_messages(ui_messages: list[dict[str, Any]]) -> list:
+def to_base_messages(ui_messages: list[dict[str, Any]]) -> list[Any]:
     """Convert AI SDK UIMessage list to LangChain messages.
 
     Args:
@@ -16,7 +16,7 @@ def to_base_messages(ui_messages: list[dict[str, Any]]) -> list:
     Returns:
         List of LangChain message objects (HumanMessage, AIMessage, SystemMessage)
     """
-    result = []
+    result: list[Any] = []
     for msg in ui_messages:
         role = msg.get("role", "user")
         content = msg.get("content", "")
